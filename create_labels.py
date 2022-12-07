@@ -35,48 +35,51 @@ def process_photo_labels(photo, model, tags):
     """
     photo_uid = photo['UID']
     print("Processing file: ", photo_uid)
-    # 获取图片存储位置
-    filename = ''
-    try:
-        # 单图且非sidecar
-        if 'FileName' in photo and photo['FileRoot'] != 'sidecar':
-            filename = photo['FileName']
-        elif photo['Files'] != None:
-            # 堆叠图片只取非sidecar及video
-            for file in photo['Files']:
-                if file['Root'] == 'sidecar' or file['MediaType'] == 'video':
-                    continue
-                else:
-                    filename = file['Name']
-    except:
-        print("WARN:load name from FileName failed")
-    if filename:
-        filePath = os.path.join("/app", filename)
-        tag_sets = get_tags_and_score(filePath, model, tags)
-
-        # TODO 修改逻辑
-        save_to_file = True
-        # 大批量建议设为 false，通过 shell 脚本导入。小批量/日常使用设为 true
-        direct_add_to_photoprism = True
+    # 文件存在则跳过
+    if not os.path.exists(f'./tag_score/{photo_uid}.txt'):
+        # 获取图片存储位置
+        filename = ''
         try:
-            if tag_sets:
-                if direct_add_to_photoprism and not save_to_file:
-                    for tag, score in tag_sets:
-                        add_label_to_photoprism(
-                            photo['UID'], tag, int((1-score)*100))
-                elif save_to_file and not direct_add_to_photoprism:
-                    with open(f'./tag_score/{photo_uid}.txt', 'w') as f:
+            # 单图且非sidecar
+            if 'FileName' in photo and photo['FileRoot'] != 'sidecar':
+                filename = photo['FileName']
+            elif photo['Files'] != None:
+                # 堆叠图片只取非sidecar及video
+                for file in photo['Files']:
+                    if file['Root'] == 'sidecar' or file['MediaType'] == 'video':
+                        continue
+                    else:
+                        filename = file['Name']
+        except:
+            print("WARN:load name from FileName failed")
+        if filename:
+            filePath = os.path.join("/app", filename)
+            tag_sets = get_tags_and_score(filePath, model, tags)
+
+            # TODO 修改逻辑
+            save_to_file = True
+            # 大批量建议设为 false，通过 shell 脚本导入。小批量/日常使用设为 true
+            direct_add_to_photoprism = True
+            try:
+                if tag_sets:
+                    if direct_add_to_photoprism and not save_to_file:
                         for tag, score in tag_sets:
-                            f.write(f"{tag},{score}\n")
-                else:
-                    with open(f'./tag_score/{photo_uid}.txt', 'w') as f:
-                        for tag, score in tag_sets:
-                            f.write(f"{tag},{score}\n")
                             add_label_to_photoprism(
                                 photo['UID'], tag, int((1-score)*100))
-        except:
-            print("Failed to add labels: ", photo_uid)
-
+                    elif save_to_file and not direct_add_to_photoprism:
+                        with open(f'./tag_score/{photo_uid}.txt', 'w') as f:
+                            for tag, score in tag_sets:
+                                f.write(f"{tag},{score}\n")
+                    else:
+                        with open(f'./tag_score/{photo_uid}.txt', 'w') as f:
+                            for tag, score in tag_sets:
+                                f.write(f"{tag},{score}\n")
+                                add_label_to_photoprism(
+                                    photo['UID'], tag, int((1-score)*100))
+            except:
+                print("Failed to add labels: ", photo_uid)
+    else:
+        print("File already processed: ", photo_uid)
 
 def process_photos(model, tags):
     """
