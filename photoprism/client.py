@@ -31,6 +31,10 @@ class Client:
             _enable_logging()
         self.base_url = domain + root
         self.session = requests.Session()
+        self.session.mount(
+            'http://', requests.adapters.HTTPAdapter(pool_maxsize=50))
+        self.session.mount(
+            'https://', requests.adapters.HTTPAdapter(pool_maxsize=50))
         if username:
             session_data = self._create_session(
                 username=username, password=password)

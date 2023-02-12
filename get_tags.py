@@ -7,6 +7,7 @@ from typing import Any, List, Optional, Sequence, Tuple, Union
 import click
 import six
 import deepdanbooru
+from config import *
 
 try:
     import tensorflow as tf
@@ -43,14 +44,14 @@ def eval(
 
 
 def get_model_and_tags():
-    modelFile = "./deepdanbooru-v3-20211112-sgd-e28/model-resnet_custom_v3.h5"
-    tagsFile = "./deepdanbooru-v3-20211112-sgd-e28/tags.txt"
+    modelFile = MODEL_FILE
+    tagsFile = TAGS_FILE
     model, tags = load_model_and_tags(modelFile, tagsFile, None)
     return model, tags
 
 
 def get_tags_and_score(filePath, model, tags):
-    if filePath.lower().endswith((".jpg", ".png", ".webp", ".jpeg")): #, ".gif", ".bmp"
+    if filePath.lower().endswith((".jpg", ".png", ".webp", ".jpeg")):  # , ".gif", ".bmp"
         try:
             return eval(
                 filePath,

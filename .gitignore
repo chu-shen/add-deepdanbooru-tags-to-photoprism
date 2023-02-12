@@ -1,0 +1,6 @@
+deepdanbooru-v3-20211112-sgd-e28
+deepdanbooru_results_of_photoprism.db
+__pycache__
+.vscode
+adttp.log
+config.py
